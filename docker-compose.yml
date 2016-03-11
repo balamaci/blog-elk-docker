@@ -1,0 +1,41 @@
+elasticsearch:
+  image: elasticsearch:latest
+  command: elasticsearch -Des.network.host=0.0.0.0
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+
+logstash:
+  image: logstash:latest
+  command: logstash -f /etc/logstash/conf.d/logstash.conf
+  volumes:
+    - ./logstash/config:/etc/logstash/conf.d
+  ports:
+    - "5000:5000"
+  links:
+    - elasticsearch
+
+kibana:
+  build: kibana/
+  volumes:
+    - ./kibana/config/kibana.yml:/opt/kibana/config/kibana.yml
+  ports:
+    - "5601:5601"
+  links:
+    - elasticsearch
+
+elastalert:
+  image: ivankrizsan/elastalert:latest
+#  build: elastalert/
+  volumes:
+      - ./elastalert/rules:/opt/rules
+      - ./elastalert/config:/opt/config
+      - ./elastalert/logs:/opt/logs
+  links:
+      - elasticsearch:elasticsearch_host
+  environment:
+    - SET_CONTAINER_TIMEZONE=true
+    - CONTAINER_TIMEZONE=Europe/Bucharest
+#  links:
+#    - elasticsearch
+  #command: python -m elastalert.elastalert --config /opt/config/elastalert_config.yaml --rule elastalert_config.yaml --verbose

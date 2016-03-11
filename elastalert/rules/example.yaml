@@ -1,0 +1,20 @@
+es_host: elasticsearch_host
+es_port: 9200
+name: Example rule
+type: frequency
+index: logstash-*
+num_events: 10
+timeframe:
+    minutes: 5
+filter:
+#- term:
+#    message: "*FAILED*"
+filter:
+- query:
+    query_string:
+       query: "message : FAILED"
+
+alert:
+  - "email"
+email:
+  - "elastalert@example.com"

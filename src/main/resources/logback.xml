@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- 
+    For more configuration information and examples see
+    http://logback.qos.ch/manual/configuration.html
+-->
+<configuration debug="true" scan="false">
+    <!--<statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" />-->
+
+    <appender name="STASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <!-- remoteHost and port are optional (default values shown) -->
+        <destination>172.17.0.3:5000</destination>
+
+        <!-- encoder is required -->
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <mdc/>
+
+                <context/>
+
+                <version/>
+
+                <logLevel/>
+                <loggerName/>
+
+                <pattern>
+                 <pattern>
+                    {
+                    "appName": "elk-testdata",
+                    "appVersion": "1.0"
+                    }
+                 </pattern>
+                </pattern>
+
+                <threadName/>
+
+                <message/>
+
+                <logstashMarkers/>
+                <arguments/>
+
+                <stackTrace/>
+            </providers>
+        </encoder>
+    </appender>
+    <!---->
+
+
+    <!-- Debugging appender (duplicates the normal log, PLUS any debug messages) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{ISO8601} %level{5} %c{3} - %message%n</pattern>
+        </encoder>
+    </appender>
+    <!---->
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>./log/elk-file.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>./log/elk-file.log.%d{yyyyMMdd}-%i
+            </fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>256MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%date{ISO8601} [%thread] %level{5} %c{3} - %message%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <logger name="ro.fortsoft.elk.testdata" level="INFO" additivity="false">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="STASH"/>
+    </logger>
+
+    <!-- ROOT logger setup -->
+    <root level="INFO">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="STASH"/>
+    </root>
+
+</configuration>
