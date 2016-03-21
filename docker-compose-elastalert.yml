@@ -1,0 +1,11 @@
+elastalert:
+  image: ivankrizsan/elastalert:latest
+  volumes:
+      - ./elastalert/rules:/opt/rules
+      - ./elastalert/config:/opt/config
+      - ./elastalert/logs:/opt/logs
+  links:
+      - elasticsearch:elasticsearch_host
+  environment:
+    - SET_CONTAINER_TIMEZONE=true
+    - CONTAINER_TIMEZONE=Europe/Bucharest

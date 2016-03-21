@@ -24,18 +24,3 @@ kibana:
   links:
     - elasticsearch
 
-elastalert:
-  image: ivankrizsan/elastalert:latest
-#  build: elastalert/
-  volumes:
-      - ./elastalert/rules:/opt/rules
-      - ./elastalert/config:/opt/config
-      - ./elastalert/logs:/opt/logs
-  links:
-      - elasticsearch:elasticsearch_host
-  environment:
-    - SET_CONTAINER_TIMEZONE=true
-    - CONTAINER_TIMEZONE=Europe/Bucharest
-#  links:
-#    - elasticsearch
-  #command: python -m elastalert.elastalert --config /opt/config/elastalert_config.yaml --rule elastalert_config.yaml --verbose
