@@ -34,3 +34,5 @@ you can easily get the ip of any container - logstash, kibana, elasticsearch
 ````bash
 docker inspect --format '{{ .NetworkSettings.IPAddress }}' container_id
 ```
+
+
