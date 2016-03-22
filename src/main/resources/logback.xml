@@ -7,7 +7,7 @@
 
     <appender name="STASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
         <!-- remoteHost and port are optional (default values shown) -->
-        <destination>172.17.0.3:5000</destination>
+        <destination>logstash_host:5000</destination>
 
         <!-- encoder is required -->
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
