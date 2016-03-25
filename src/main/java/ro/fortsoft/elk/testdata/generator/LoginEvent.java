@@ -30,13 +30,6 @@ public class LoginEvent implements Runnable {
         randomIp = ThreadLocalRandom.current().nextInt(0, 192);
     }
 
-    private void waitBeforeStart() {
-        int waitMs = ThreadLocalRandom.current().nextInt(minWaitMs, maxWaitMs);
-        try {
-            Thread.sleep(waitMs);
-        } catch (InterruptedException ignored) {  }
-    }
-
     @Override
     public void run() {
         waitBeforeStart();
@@ -47,7 +40,7 @@ public class LoginEvent implements Runnable {
         if(randomIp < MIN_VALID_LOGIN_IP) {
             log.info(ipMarker, "SUCCESS login for user='{}'", username);
         } else {
-            log.info(ipMarker, "FAILED login for user='{}'", username);
+            log.error(ipMarker, "FAILED login for user='{}'", username);
         }
     }
 
@@ -55,6 +48,13 @@ public class LoginEvent implements Runnable {
         Fairy fairy = Fairy.create();
         Person person = fairy.person();
         return person.email();
+    }
+
+    private void waitBeforeStart() {
+        int waitMs = ThreadLocalRandom.current().nextInt(minWaitMs, maxWaitMs);
+        try {
+            Thread.sleep(waitMs);
+        } catch (InterruptedException ignored) {  }
     }
 
 }
