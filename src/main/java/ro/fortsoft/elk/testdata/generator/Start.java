@@ -1,7 +1,10 @@
 package ro.fortsoft.elk.testdata.generator;
 
+import ro.fortsoft.elk.testdata.generator.event.LoginEvent;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
 /**
  * @author sbalamaci
@@ -14,11 +17,15 @@ public class Start {
     public static void main(String[] args) {
         ExecutorService executorService = Executors.newFixedThreadPool(CONCURRENT_THREADS);
 
-        for(int i=0; i < NUMBER_OF_EVENTS; i++) {
-            executorService.submit(new LoginEvent());
-        }
+        IntStream.of(NUMBER_OF_EVENTS)
+                .mapToObj(Start::randomEvent)
+                .forEach(executorService::submit);
 
         executorService.shutdown();
+    }
+
+    public static Runnable randomEvent(int val) {
+        return new LoginEvent();
     }
 
 }

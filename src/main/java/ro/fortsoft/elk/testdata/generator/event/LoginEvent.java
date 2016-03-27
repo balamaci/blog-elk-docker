@@ -1,4 +1,4 @@
-package ro.fortsoft.elk.testdata.generator;
+package ro.fortsoft.elk.testdata.generator.event;
 
 import io.codearte.jfairy.Fairy;
 import io.codearte.jfairy.producer.person.Person;
@@ -14,10 +14,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class LoginEvent implements Runnable {
 
-    private static final
-
-    int minWaitMs = 500;
-    int maxWaitMs = 2500;
+    private static final int minWaitMs = 500;
+    private static final int maxWaitMs = 2500;
 
     private static final Logger log = LoggerFactory.getLogger(LoginEvent.class);
 
