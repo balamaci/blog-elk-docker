@@ -34,13 +34,21 @@ you can easily get the ip of any container - logstash, kibana, elasticsearch
 ````bash
 docker inspect --format '{{ .NetworkSettings.IPAddress }}' container_id
 ```
+so you can for ex. open the browser and open Kibana http://ip_from_above:5601
 
-for event generation you can use provided script **event-generate.sh** with the container name from above
+For event generation you can use provided script **event-generate.sh** with the container name from above **docker ps** command
 ````bash
 ./event-generate.sh elkintrogithub_logstash_1
 ```
+this does
+````bash
+docker run -it --link $1:logstash_host --rm --name event_generator -v ~/.m2/:/root/.m2 -v "$PWD":/usr/src/mymaven -w /usr/src/mymaven maven:3.3.3-jdk-8 mvn clean compile exec:java
+```
+so basically inside a Java docker container we invoke the **maven-exec** plugin to run the **Start.main(String args[])** as configured in [pom.xml](https://github.com/balamaci/blog-elk-docker/blob/master/pom.xml). 
+--link $1:logstash_host   -> link with the logstash container so we can reference directly in logback config 
+-v ~/.m2/:/root/.m2       -> map the user's maven directory to the one in the container so the dependencies would not have to be downloaded whenever the container is recreated
 
-The number and type of events and is configured in the **jobs.conf** file:
+The number and type of events and is configured in the **[jobs.conf](https://github.com/balamaci/blog-elk-docker/blob/master/src/main/resources/jobs.conf)** file:
  ```
  events {
      number:100,
@@ -70,43 +78,43 @@ you can create and add your own event by extending and adding it to the list.
 
 
 ````java
-        ExecutorService executorService = Executors.newFixedThreadPool(numberOfConcurrentThreads);
+ExecutorService executorService = Executors.newFixedThreadPool(numberOfConcurrentThreads);
 
-        /** From 0->numberOfEvents we produce an Event(extends Runnable)
-            which we submit 
-         **/
-        IntStream.rangeClosed(0, numberOfEvents)
-                .mapToObj(eventBuilder::randomEvent)
-                .forEach(executorService::submit);
+/** From 0->numberOfEvents we produce an Event(extends Runnable) which we submit to the Executor service **/
+IntStream.rangeClosed(0, numberOfEvents)
+            .mapToObj(eventBuilder::randomEvent)
+            .forEach(executorService::submit);
 
-        //since all the jobs have been submitted we notify the pool that it can shutdown
-        executorService.shutdown();
+//since all the jobs have been submitted we notify the pool that it can shutdown
+executorService.shutdown();
 
-        try {
-            executorService.awaitTermination(5, TimeUnit.MINUTES);
-        } catch (InterruptedException ignored) {
-        } finally {
-            shutdownLogger();
-        }
+try {
+      executorService.awaitTermination(5, TimeUnit.MINUTES);
+} catch (InterruptedException ignored) {
+} finally {
+     shutdownLogger();
+}
 ```
 
-The **executorService** from Executors.newFixedThreadPool method which creates an ExecutorService with a pool of threads, but also 
+The **executorService** from _Executors.newFixedThreadPool()_ method which creates an ExecutorService with a pool of threads, but also 
 as parameter an unbounded(MAX_INT) - **LinkedBlockingQueue**-.
-This means the ExecutorService can receive quickly(not blocking since the **BlockingQueue** is unbounded) new jobs which are held "in store" until one of the worker threads gets freed.
-```
-    IntStream.rangeClosed(0, numberOfEvents)
-                .mapToObj(eventBuilder::randomEvent)
-                .forEach(executorService::submit);                 
+If we submit more jobs than there are free threads in the pool, the new jobs which are held "in store" until one of the worker threads is free to take a new job from the queue. 
+
+This means the ExecutorService can receive quickly(not blocking since the **BlockingQueue** is unbounded).
+````java
+IntStream.rangeClosed(0, numberOfEvents)
+            .mapToObj(eventBuilder::randomEvent)
+            .forEach(executorService::submit);                 
 ```
 
 since all the jobs have been submitted we notify the pool that it can shutdown so the Main thread can eventually exit
 ````java
-    executorService.shutdown();
+executorService.shutdown();
 ````
 
-but we need to wait for the jobs that were submitted and not yet processed - those stored in the **BlockingQueue**
+but we need to wait for the jobs that were submitted and not yet processed - those stored in the **BlockingQueue**- to finish
 ````java
-    executorService.awaitTermination(5, TimeUnit.MINUTES);
+executorService.awaitTermination(5, TimeUnit.MINUTES); 
 ````
 
-The **shutdownLogger** command is necessary to stop the async threads which are pushing the log events into Logstash and to close the connection 
+In the end, the **shutdownLogger** command is necessary to stop the async threads which are pushing the log events into Logstash and to close the connection 
