@@ -44,9 +44,10 @@ this does
 ````bash
 docker run -it --link $1:logstash_host --rm --name event_generator -v ~/.m2/:/root/.m2 -v "$PWD":/usr/src/mymaven -w /usr/src/mymaven maven:3.3.3-jdk-8 mvn clean compile exec:java
 ```
-so basically inside a Java docker container we invoke the **maven-exec** plugin to run the **Start.main(String args[])** as configured in [pom.xml](https://github.com/balamaci/blog-elk-docker/blob/master/pom.xml). 
---link $1:logstash_host   -> link with the logstash container so we can reference directly in logback config 
--v ~/.m2/:/root/.m2       -> map the user's maven directory to the one in the container so the dependencies would not have to be downloaded whenever the container is recreated
+so basically inside a Java docker container we invoke the **maven-exec** plugin to run the **Start.main(String args[])** as configured in [pom.xml](https://github.com/balamaci/blog-elk-docker/blob/master/pom.xml).
+ 
+    --link $1:logstash_host   -> link with the logstash container so we can reference directly in logback config 
+    -v ~/.m2/:/root/.m2       -> map the user's maven directory to the one in the container so the dependencies would not have to be downloaded whenever the container is recreated
 
 The number and type of events and is configured in the **[jobs.conf](https://github.com/balamaci/blog-elk-docker/blob/master/src/main/resources/jobs.conf)** file:
  ```
@@ -107,12 +108,12 @@ IntStream.rangeClosed(0, numberOfEvents)
             .forEach(executorService::submit);                 
 ```
 
-since all the jobs have been submitted we notify the pool that it can shutdown so the Main thread can eventually exit
+since all the jobs have been submitted quite fast, we notify the pool that it can shutdown so the Main thread can eventually exit
 ````java
 executorService.shutdown();
 ````
 
-but we need to wait for the jobs that were submitted and not yet processed - those stored in the **BlockingQueue**- to finish
+but we need to wait for the jobs that were submitted and not yet processed - those stored in the **BlockingQueue**- to finish with a generous grace period
 ````java
 executorService.awaitTermination(5, TimeUnit.MINUTES); 
 ````
