@@ -1,4 +1,4 @@
-package ro.fortsoft.elk.testdata.generator.event;
+package ro.fortsoft.elk.testdata.generator.event.base;
 
 import io.codearte.jfairy.Fairy;
 import io.codearte.jfairy.producer.person.Person;

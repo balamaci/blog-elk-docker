@@ -4,6 +4,7 @@ import net.logstash.logback.marker.Markers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
+import ro.fortsoft.elk.testdata.generator.event.base.BaseEvent;
 
 import java.util.concurrent.ThreadLocalRandom;
 
