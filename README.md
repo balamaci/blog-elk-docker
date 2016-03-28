@@ -35,4 +35,78 @@ you can easily get the ip of any container - logstash, kibana, elasticsearch
 docker inspect --format '{{ .NetworkSettings.IPAddress }}' container_id
 ```
 
+for event generation you can use provided script **event-generate.sh** with the container name from above
+````bash
+./event-generate.sh elkintrogithub_logstash_1
+```
 
+The number and type of events and is configured in the **jobs.conf** file:
+ ```
+ events {
+     number:100,
+     threads:10,
+     jobs:[
+         {
+             name:login, //defined bellow
+             probability:0.7
+         },
+         {
+             name:submit,
+             probability:0.3
+         }
+     ]
+ 
+ }
+ 
+ login {
+    class : ro.fortsoft.elk.testdata.generator.event.LoginEvent
+ }
+ 
+ submit {
+    class : ro.fortsoft.elk.testdata.generator.event.SubmitOrderEvent
+ }
+ ```
+you can create and add your own event by extending and adding it to the list. 
+
+
+````java
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfConcurrentThreads);
+
+        /** From 0->numberOfEvents we produce an Event(extends Runnable)
+            which we submit 
+         **/
+        IntStream.rangeClosed(0, numberOfEvents)
+                .mapToObj(eventBuilder::randomEvent)
+                .forEach(executorService::submit);
+
+        //since all the jobs have been submitted we notify the pool that it can shutdown
+        executorService.shutdown();
+
+        try {
+            executorService.awaitTermination(5, TimeUnit.MINUTES);
+        } catch (InterruptedException ignored) {
+        } finally {
+            shutdownLogger();
+        }
+```
+
+The **executorService** from Executors.newFixedThreadPool method which creates an ExecutorService with a pool of threads, but also 
+as parameter an unbounded(MAX_INT) - **LinkedBlockingQueue**-.
+This means the ExecutorService can receive quickly(not blocking since the **BlockingQueue** is unbounded) new jobs which are held "in store" until one of the worker threads gets freed.
+```
+    IntStream.rangeClosed(0, numberOfEvents)
+                .mapToObj(eventBuilder::randomEvent)
+                .forEach(executorService::submit);                 
+```
+
+since all the jobs have been submitted we notify the pool that it can shutdown so the Main thread can eventually exit
+````java
+    executorService.shutdown();
+````
+
+but we need to wait for the jobs that were submitted and not yet processed - those stored in the **BlockingQueue**
+````java
+    executorService.awaitTermination(5, TimeUnit.MINUTES);
+````
+
+The **shutdownLogger** command is necessary to stop the async threads which are pushing the log events into Logstash and to close the connection 

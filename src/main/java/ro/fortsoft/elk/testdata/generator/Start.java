@@ -17,8 +17,6 @@ import java.util.stream.IntStream;
  */
 public class Start {
 
-    private static final int CONCURRENT_THREADS = 10;
-
     private static final Logger log = LoggerFactory.getLogger(Start.class);
 
     private static final Config config = ConfigFactory.load("./jobs");
@@ -27,6 +25,7 @@ public class Start {
         EventBuilder eventBuilder = new EventBuilder(config);
 
         int numberOfEvents = getNumberOfEvents();
+        int numberOfConcurrentThreads = getNumberOfConcurrentThreads();
         log.info("Generating {} events", numberOfEvents);
 
         /*The newFixedThreadPool method creates a fixed thread executor,
@@ -34,18 +33,17 @@ public class Start {
           which means the ExecutorService can receive quickly(not blocking) new jobs
           which are held "in store" until one of the worker threads gets freed
         */
-        ExecutorService executorService = Executors.newFixedThreadPool(CONCURRENT_THREADS);
-
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfConcurrentThreads);
 
         IntStream.rangeClosed(0, numberOfEvents)
                 .mapToObj(eventBuilder::randomEvent)
                 .forEach(executorService::submit);
 
-        //since all the jobs have been submitted we
+        //since all the jobs have been submitted we notify the pool that it can shutdown
         executorService.shutdown();
 
         try {
-            executorService.awaitTermination(1, TimeUnit.MINUTES);
+            executorService.awaitTermination(5, TimeUnit.MINUTES);
         } catch (InterruptedException ignored) {
         } finally {
             shutdownLogger();
@@ -65,6 +63,10 @@ public class Start {
 
     private static int getNumberOfEvents() {
         return config.getInt("events.number");
+    }
+
+    private static int getNumberOfConcurrentThreads() {
+        return config.getInt("events.threads");
     }
 
 }

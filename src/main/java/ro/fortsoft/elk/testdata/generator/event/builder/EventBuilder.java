@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  */
 public class EventBuilder {
 
-    private EnumeratedDistribution<JobInfo> jobs;
+    private final EnumeratedDistribution<JobInfo> jobs;
 
     public EventBuilder(Config config) {
         List<Pair<JobInfo, Double>> jobsWithProb = config.getList("events.jobs").stream()
@@ -36,7 +36,7 @@ public class EventBuilder {
 
     private BaseEvent createEvent(Class cls) {
         try {
-            return  (BaseEvent) cls.newInstance();
+            return (BaseEvent) cls.newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Could not create instance of BaseEvent " + cls.getName(), e);
         }
@@ -52,7 +52,7 @@ public class EventBuilder {
             Class<?> cls = Class.forName(jobClass);
             return new Pair<>(new JobInfo(cls), jobProbability);
         } catch (Exception e) {
-            throw new RuntimeException("Error creating Event class='" + jobName + "'", e);
+            throw new RuntimeException("Error creating Event class='" + jobClass + "'", e);
         }
     }
 }
