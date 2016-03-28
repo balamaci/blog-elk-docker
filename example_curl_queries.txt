@@ -1,0 +1,30 @@
+curl -XGET 'http://172.17.0.2:9200/logstash*/_search?pretty' -d '{
+    "size" : 0,
+    "filter": {
+        "match" : {
+            "message" : "FAILED"
+        }
+    },
+    "aggs" : {
+        "ips" : {
+            "terms": { "field" : "remoteIP" }
+        }
+    }
+}'
+
+
+curl -XGET 'http://172.17.0.2:9200/logstash*/_search?size=1&pretty' -d '{
+    "query": {
+        "match" : {
+            "message" : "FAILED"
+        }
+    }
+}'
+
+curl -XGET 'http://172.17.0.2:9200/logstash*/_search?size=1&pretty' -d '{
+    "filter": {
+        "match" : {
+            "message" : "FAILED"
+        }
+    }
+}'

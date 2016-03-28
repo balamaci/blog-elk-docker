@@ -1,7 +1,5 @@
 package ro.fortsoft.elk.testdata.generator.event;
 
-import io.codearte.jfairy.Fairy;
-import io.codearte.jfairy.producer.person.Person;
 import net.logstash.logback.marker.Markers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author sbalamaci
  */
-public class LoginEvent implements Runnable {
-
-    private static final int minWaitMs = 500;
-    private static final int maxWaitMs = 2500;
+public class LoginEvent extends BaseEvent {
 
     private static final Logger log = LoggerFactory.getLogger(LoginEvent.class);
 
@@ -29,9 +24,7 @@ public class LoginEvent implements Runnable {
     }
 
     @Override
-    public void run() {
-        waitBeforeStart();
-
+    public void doWork() {
         Marker ipMarker = Markers.append("remoteIP", ipNetworkPattern + randomIp);
         String username = randomUsername();
 
@@ -40,19 +33,6 @@ public class LoginEvent implements Runnable {
         } else {
             log.error(ipMarker, "FAILED login for user='{}'", username);
         }
-    }
-
-    private String randomUsername() {
-        Fairy fairy = Fairy.create();
-        Person person = fairy.person();
-        return person.email();
-    }
-
-    private void waitBeforeStart() {
-        int waitMs = ThreadLocalRandom.current().nextInt(minWaitMs, maxWaitMs);
-        try {
-            Thread.sleep(waitMs);
-        } catch (InterruptedException ignored) {  }
     }
 
 }
