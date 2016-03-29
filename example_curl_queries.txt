@@ -28,3 +28,24 @@ curl -XGET 'http://172.17.0.2:9200/logstash*/_search?size=1&pretty' -d '{
         }
     }
 }'
+
+curl -XGET 'http://172.17.0.2:9200/logstash*/_search?pretty' -d '{
+  "filter": {
+    "bool": {
+        "must": {
+            "range" : {
+                "@timestamp" : {
+                    "gte": "2016",
+                    "lte": "01/04/2016",
+                    "format": "dd/MM/yyyy||yyyy"
+                }
+            }
+        },
+        "must_not": { "prefix": { "remoteIP": "127.0.0" }},
+        "should": [
+                    { "match": { "message": "FAILED login" }},
+                    { "match": { "message": "SUCCESS login"}}
+        ]
+    }
+ }
+}'
