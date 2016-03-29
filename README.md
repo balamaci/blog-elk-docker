@@ -104,18 +104,17 @@ try {
 }
 ```
 
-The **executorService** from _Executors.newFixedThreadPool()_ method which creates an ExecutorService with a pool of threads, but also 
-as parameter an unbounded(MAX_INT) - **LinkedBlockingQueue**-.
+**_Executors.newFixedThreadPool(numberOfThreads)_** method which creates an ExecutorService with a pool of threads, but also as parameter an unbounded(MAX_INT) - **LinkedBlockingQueue**-.
 If we submit more jobs than there are free threads in the pool, the new jobs which are held "in store" until one of the worker threads is free to take a new job from the queue. 
 
-This means the ExecutorService can receive quickly(not blocking since the **BlockingQueue** is unbounded).
+This means the ExecutorService can accept quickly all the submitted jobs. It's not blocking at any of the executorService.submit() call, since the **BlockingQueue** is unbounded).
 ````java
 IntStream.rangeClosed(0, numberOfEvents)
             .mapToObj(eventBuilder::randomEvent)
             .forEach(executorService::submit);                 
 ```
 
-since all the jobs have been submitted quite fast, we notify the pool that it can shutdown so the Main thread can eventually exit
+Since all the jobs have been submitted quite fast, we notify the pool that it can shutdown so the Main thread can eventually exit
 ````java
 executorService.shutdown();
 ````
