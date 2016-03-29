@@ -75,13 +75,18 @@ The number and type of events and is configured in the **[jobs.conf](https://git
     class : ro.fortsoft.elk.testdata.generator.event.SubmitOrderEvent
  }
  ```
-you can create and add your own event by extending and adding it to the list. 
+you can create and add your own event by extending **[BaseEvent](https://github.com/balamaci/blog-elk-docker/blob/master/src/main/java/ro/fortsoft/elk/testdata/generator/event/base/BaseEvent.java)** and adding it to the list of jobs. 
 
+
+#### How the events are run
+
+The code that fires the events:
 
 ````java
 ExecutorService executorService = Executors.newFixedThreadPool(numberOfConcurrentThreads);
 
-/** From 0->numberOfEvents we produce an Event(extends Runnable) which we submit to the Executor service **/
+/** From 0->numberOfEvents we produce an Event(extends Runnable) which 
+we submit to the Executor service **/
 IntStream.rangeClosed(0, numberOfEvents)
             .mapToObj(eventBuilder::randomEvent)
             .forEach(executorService::submit);
@@ -90,9 +95,11 @@ IntStream.rangeClosed(0, numberOfEvents)
 executorService.shutdown();
 
 try {
-      executorService.awaitTermination(5, TimeUnit.MINUTES);
+      //wait for the submitted tasks to finish, but no more 
+      executorService.awaitTermination(5, TimeUnit.MINUTES);  
 } catch (InterruptedException ignored) {
 } finally {
+     //signal the async shipping to Logstash threads to terminate
      shutdownLogger();
 }
 ```
@@ -118,4 +125,6 @@ but we need to wait for the jobs that were submitted and not yet processed - tho
 executorService.awaitTermination(5, TimeUnit.MINUTES); 
 ````
 
-In the end, the **shutdownLogger** command is necessary to stop the async threads which are pushing the log events into Logstash and to close the connection 
+In the end, the **shutdownLogger** command is necessary to stop the async threads which are pushing the log events into Logstash and to close the connection
+
+ 
