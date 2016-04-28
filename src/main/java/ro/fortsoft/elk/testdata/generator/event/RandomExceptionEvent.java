@@ -24,7 +24,7 @@ public class RandomExceptionEvent extends BaseEvent {
         try {
             randomException();
         } catch (Exception e) {
-            log.error("Random Exception", e);
+            log.error("Uncaught exception", e);
         }
     }
 
