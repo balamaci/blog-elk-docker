@@ -30,13 +30,30 @@ curl -XGET 'http://172.17.0.2:9200/logstash*/_search?size=1&pretty' -d '{
 }'
 
 curl -XGET 'http://172.17.0.2:9200/logstash*/_search?pretty' -d '{
+ "filter": {
+           "bool": {
+                "must": [
+		            "range" : {
+                        "@timestamp" : {
+                            "gt": "2016-04-05T08:40:46.760",
+                            "lte": "2016-04-05T12:40:46.760",
+                            "format": "date_hour_minute_second_millis"
+                        }
+                    },
+		            "match" : {"message" : "FAILED"}
+                ]
+           }
+        }
+}'
+
+curl -XGET 'http://172.17.0.2:9200/logstash*/_search?pretty' -d '{
   "filter": {
     "bool": {
         "must": {
             "range" : {
                 "@timestamp" : {
                     "gte": "2016",
-                    "lte": "01/04/2016",
+                    "lte": "01/05/2016",
                     "format": "dd/MM/yyyy||yyyy"
                 }
             }
@@ -45,6 +62,25 @@ curl -XGET 'http://172.17.0.2:9200/logstash*/_search?pretty' -d '{
         "should": [
                     { "match": { "message": "FAILED login" }},
                     { "match": { "message": "SUCCESS login"}}
+        ]
+    }
+ }
+}'
+
+curl -XGET 'http://172.17.0.2:9200/logstash*/_search?pretty' -d '{
+  "filter": {
+    "bool": {
+        "must": [
+            {
+             "range" : {
+                "@timestamp" : {
+                    "gte": "2016",
+                    "lte": "01/05/2016",
+                    "format": "dd/MM/yyyy||yyyy"
+                }
+             }
+            },
+            {"match": { "message": "Uncaught exception" }}
         ]
     }
  }

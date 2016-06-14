@@ -9,20 +9,18 @@ logstash:
   image: logstash:latest
   command: logstash -f /etc/logstash/conf.d/logstash.conf
   volumes:
-    - ./logstash/config-rabbitmq:/etc/logstash/conf.d
+    - ./logstash/config:/etc/logstash/conf.d
   ports:
     - "5000:5000"
   links:
-    - rabbitmq
+    - elasticsearch
 
-rabbitmq:
-  image: rabbitmq:3
-
+kibana:
+  build: kibana/
   volumes:
-    - ./rabbitmq/volume:/var/lib/rabbitmq"
+    - ./kibana/config/kibana.yml:/opt/kibana/config/kibana.yml
   ports:
-    - "4369:4369"
-    - "5671:5671"
-    - "5672:5672"
-    - "25672:25672"
+    - "5601:5601"
+  links:
+    - elasticsearch
 
